@@ -5,6 +5,6 @@ package com.olegel.cachepicturessd;
  */
 
 public interface CacheLoaderCallBack {
-    void onSucsess();
+    void onSuccess();
     void onError(String error);
 }

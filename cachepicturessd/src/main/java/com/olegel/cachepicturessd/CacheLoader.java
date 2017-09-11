@@ -38,7 +38,7 @@ public class CacheLoader {
     /**
      * Method download picture from URL and adding into cache directory
      */
-    public void setImageFromURL() {
+    public void saveImageFromURL() {
         Executors.newFixedThreadPool(1).execute(new Runnable() {
             @Override
             public void run() {
@@ -78,7 +78,7 @@ public class CacheLoader {
             }
         });
     }
-    public void setImageFromURL(final CacheLoaderCallBack callBack) {
+    public void saveImageFromURL(final CacheLoaderCallBack callBack) {
         Executors.newFixedThreadPool(1).execute(new Runnable() {
             @Override
             public void run() {
@@ -98,7 +98,7 @@ public class CacheLoader {
                         bit.compress(Bitmap.CompressFormat.JPEG, 85, os);
                         is.close();
                         os.close();
-                        callBack.onSucsess();
+                        callBack.onSuccess();
                         httpConnection.disconnect();
                     } catch (IOException e) {
                         Log.w("ExternalStorage", "Error writing " + file, e);
