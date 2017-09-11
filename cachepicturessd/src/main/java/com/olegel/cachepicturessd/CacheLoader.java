@@ -26,6 +26,7 @@ public class CacheLoader {
     private String loadUrl;
     private String pictureName;
     private ImageView imageView;
+    private HttpURLConnection httpConnection;
 
     private CacheLoader(Builder builder) {
         this.context = builder.contextBuilder;
@@ -42,15 +43,16 @@ public class CacheLoader {
             @Override
             public void run() {
                 if (context != null) {
-                    OutputStream os;
+                    OutputStream os = null;
+                    InputStream is = null;
                     final File file = new File(context.getExternalFilesDir(null), pictureName);
 
                     try {
                         URL url = new URL(loadUrl);
-                        HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+                        httpConnection = (HttpURLConnection) url.openConnection();
                         httpConnection.setDoInput(true);
                         httpConnection.connect();
-                        InputStream is = httpConnection.getInputStream();
+                        is = httpConnection.getInputStream();
                         Bitmap bit = BitmapFactory.decodeStream(is);
                         os = new FileOutputStream(file);
                         bit.compress(Bitmap.CompressFormat.JPEG, 85, os);
@@ -60,28 +62,63 @@ public class CacheLoader {
                     } catch (IOException e) {
                         Log.w("ExternalStorage", "Error writing " + file, e);
                     }
-                    hasExternalStoragePrivateFile();
+                    finally {
+                        if(httpConnection != null){
+                            httpConnection.disconnect();
+                            try {
+                                os.flush();
+                                os.close();
+                                is.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
             }
         });
     }
-
-    /**
-     * Method load picture from cache and set into image view
-     */
-    private synchronized void hasExternalStoragePrivateFile() throws NullPointerException {
-        Runnable run = new Runnable() {
+    public void setImageFromURL(final CacheLoaderCallBack callBack) {
+        Executors.newFixedThreadPool(1).execute(new Runnable() {
             @Override
             public void run() {
-                File file = new File(context.getExternalFilesDir(null), pictureName);
-                if (file != null) {
-                    Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                    if (imageView == null) throw new NullPointerException();
-                    imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
+                if (context != null) {
+                    OutputStream os = null;
+                    InputStream is = null;
+                    final File file = new File(context.getExternalFilesDir(null), pictureName);
+
+                    try {
+                        URL url = new URL(loadUrl);
+                        httpConnection = (HttpURLConnection) url.openConnection();
+                        httpConnection.setDoInput(true);
+                        httpConnection.connect();
+                        is = httpConnection.getInputStream();
+                        Bitmap bit = BitmapFactory.decodeStream(is);
+                        os = new FileOutputStream(file);
+                        bit.compress(Bitmap.CompressFormat.JPEG, 85, os);
+                        is.close();
+                        os.close();
+                        callBack.onSucsess();
+                        httpConnection.disconnect();
+                    } catch (IOException e) {
+                        Log.w("ExternalStorage", "Error writing " + file, e);
+                        callBack.onError(e.getMessage());
+                    }
+                    finally {
+                        if(httpConnection != null){
+                            httpConnection.disconnect();
+                            try {
+                                os.flush();
+                                os.close();
+                                is.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
             }
-        };
-        new Handler(context.getMainLooper()).post(run);
+        });
     }
 
     /**
@@ -98,8 +135,19 @@ public class CacheLoader {
     /**
      * Set picture from cache
      */
-    public void setPictureFromCache() {
-        hasExternalStoragePrivateFile();
+    public synchronized void setPictureFromCache() {
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                File file = new File(context.getExternalFilesDir(null), pictureName);
+                if (file != null) {
+                    Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                    if (imageView == null) throw new NullPointerException();
+                    imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
+                }
+            }
+        };
+        new Handler(context.getMainLooper()).post(run);
     }
 
     /**
@@ -107,7 +155,7 @@ public class CacheLoader {
      */
     public boolean deleteExternalStoragePrivateFile() {
         if (context != null) {
-            File file = new File(context.getExternalFilesDir(null), "DemoFile.jpg");
+            File file = new File(context.getExternalFilesDir(null), pictureName);
             if (file != null) {
                 file.delete();
                 return true;
@@ -135,6 +183,11 @@ public class CacheLoader {
 
         public Builder setInto(ImageView imageView) {
             this.imageViewBuilder = imageView;
+            return this;
+        }
+
+        public Builder setPictureName(String pictureName) {
+            this.pictureNameBuilder = pictureName;
             return this;
         }
 
