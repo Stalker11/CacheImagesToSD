@@ -167,7 +167,8 @@ public class CacheLoader {
                 if (file != null) {
                     Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     if (imageView != null) {
-                        imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
+                        //imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
+                        new ResizeImage(imageView,file.getAbsolutePath());
                     }
                 }
             }
