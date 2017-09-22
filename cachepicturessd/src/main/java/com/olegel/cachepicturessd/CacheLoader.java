@@ -168,7 +168,30 @@ public class CacheLoader {
                     Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     if (imageView != null) {
                         //imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
-                        new ResizeImage(imageView,file.getAbsolutePath());
+                        new ResizeImage(imageView, file.getAbsolutePath()).setImageView();
+                    }
+                }
+            }
+        };
+        new Handler(context.getMainLooper()).post(run);
+    }
+
+    /**
+     * Set picture from cache
+     *
+     * @param width  set custom width
+     * @param height set custom heihgt
+     */
+    public synchronized void setPictureFromCache(final int width, final int height) {
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                File file = new File(context.getExternalFilesDir(null), pictureName);
+                if (file != null) {
+                    Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                    if (imageView != null) {
+                        //imageView.setImageDrawable(new BitmapDrawable(null, myBitmap));
+                        new ResizeImage(imageView, file.getAbsolutePath()).setImageView(width, height);
                     }
                 }
             }

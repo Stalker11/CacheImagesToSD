@@ -2,6 +2,7 @@ package com.olegel.cachepicturessd;
 
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 /**
@@ -13,16 +14,17 @@ public class ResizeImage {
     private String link;
     private int containerHeight;
     private int containerWidth;
+    private boolean resizeContainer = false;
     private static final String TAG = ResizeImage.class.getSimpleName();
 
     public ResizeImage(ImageView imageView, String link) {
         this.imageView = imageView;
         this.link = link;
-        setImageView();
     }
-    private void setImageView(){
-        containerHeight = 75;//imageView.getHeight();
-        containerWidth = 35;//imageView.getWidth();
+    public void setImageView(){
+        containerHeight = imageView.getHeight();
+        containerWidth = imageView.getWidth();
+        resizeContainer = false;
         getScaledBitmap();
     }
     private void getScaledBitmap() {
@@ -52,6 +54,18 @@ public class ResizeImage {
         }
         options = new BitmapFactory.Options();
         options.inSampleSize = inSampleSize;
+        if(resizeContainer){
+            ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+            layoutParams.height = containerHeight;
+            layoutParams.width = containerWidth;
+            imageView.setLayoutParams(layoutParams);
+        }
         imageView.setImageDrawable(new BitmapDrawable(null, BitmapFactory.decodeFile(link,options)));
+    }
+    public void setImageView(int width, int height){
+        this.containerWidth = width;
+        this.containerHeight = height;
+        resizeContainer = true;
+        getScaledBitmap();
     }
 }
